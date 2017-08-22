@@ -1,0 +1,89 @@
+ARG DOCKER_BASE
+FROM $DOCKER_BASE
+
+ARG build=1
+ARG application
+ENV application=${application}
+ARG app_socket_name=unix:///tmp/${application}_socket.socket
+ENV app_socket_name=${app_socket_name}
+
+##################
+#      dirs      #
+##################
+
+# adding directory for log files
+RUN mkdir -p /var/log/${application}
+
+# adding directory for app
+RUN mkdir -p /opt/${application}
+
+# adding directory for uwsgi configuration
+RUN mkdir -p /etc/${application}
+
+#################
+#     nginx     #
+#################
+# Make NGINX run on the foreground
+RUN echo "daemon off;" >> /etc/nginx/nginx.conf
+
+# removing nginx default configuration
+RUN rm /etc/nginx/sites-available/default
+
+# adding new configuration for nginx
+COPY ./infrastructure/config/nginx/nginx.conf /etc/nginx/conf.d/
+
+# converting file to unix end line format
+RUN dos2unix /etc/nginx/conf.d/nginx.conf
+
+# configuring nginx
+RUN sed -i -e 's|SOCKET_NAME|'"$app_socket_name"'|g' /etc/nginx/conf.d/nginx.conf
+RUN sed -i -e 's/APP_NAME/'"$application"'/g' /etc/nginx/conf.d/nginx.conf
+
+#################
+#     uwsgi     #
+#################
+
+# adding uwsgi configuration to image
+ADD ./infrastructure/config/uwsgi/uwsgi_app.ini /etc/${application}
+
+# converting file to unix end line format
+RUN dos2unix /etc/${application}/uwsgi_app.ini
+
+# configuring uwsgi
+RUN sed -i -e 's|SOCKET_NAME|'"$app_socket_name"'|g' /etc/${application}/uwsgi_app.ini
+RUN sed -i -e 's|CHANGE_DIRECTORY|/opt/'"$application"'|g' /etc/${application}/uwsgi_app.ini
+
+###################
+#   supervisord   #
+###################
+
+# adding configuration for supervisord
+COPY ./infrastructure/config/suprvisord/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# converting file to unix end line format
+RUN dos2unix /etc/supervisor/conf.d/supervisord.conf
+
+RUN sed -i -e 's|UWSGI_CONFIG_FILE_NAME|/etc/'"$application"'/uwsgi_app.ini|g' /etc/supervisor/conf.d/supervisord.conf
+
+#################
+#  application  #
+#################
+
+# copying app files
+ADD ${application} /opt/${application}
+
+# changing current working directory
+WORKDIR /opt/${application}
+
+COPY .coveragerc .flake8 requirements-dev.txt ./
+COPY requirements.txt ./
+
+COPY ./conf/app_config_skeleton.conf /etc/${application}/app.conf
+
+# installing app requirements
+RUN pip3 install -r requirements.txt
+
+# specifying port which should be exposed
+EXPOSE 80 443 11000
+
+CMD ["/usr/bin/supervisord"]

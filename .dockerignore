@@ -1,0 +1,10 @@
+.cache
+.git
+.idea
+bp
+db
+env
+logs
+tmp
+tools
+static

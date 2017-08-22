@@ -1,0 +1,38 @@
+FROM debian
+
+#####################
+#    environment    #
+#####################
+
+# tuning debian installation
+ENV HOME /root
+ENV DEBIAN_FRONTEND noninteractive
+RUN export DEBIAN_FRONTEND="noninteractive"
+RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+
+###########################
+#     updating system     #
+###########################
+
+# updating system and installing apt-utils
+RUN apt-get -yqq update && apt-get -yqq install -y --no-install-recommends apt-utils
+
+# updating system
+RUN apt-get -yqq update
+
+###################
+#    utilities    #
+###################
+# installing python
+RUN apt-get -yqq install python3 python3-dev python3-pip
+
+# installing uwsgi (communication between app and nginx)
+RUN apt-get -yqq install nano dos2unix git-core npm
+
+###############
+#   servers   #
+###############
+RUN apt-get -yqq install supervisor nginx
+
+# installing uwsgi and python plugin for uwsgi
+RUN apt-get -yqq install uwsgi uwsgi-plugin-python3
