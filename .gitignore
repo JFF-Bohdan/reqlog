@@ -99,3 +99,9 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+dev/
+bp/
+db/
+static/
+tmp/
