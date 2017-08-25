@@ -198,7 +198,7 @@ WORKDIR /opt/${application}
 #     ports     #
 #################
 # specifying port which should be exposed
-EXPOSE 80
+EXPOSE 8000
 
 #######################
 # initializing runner #

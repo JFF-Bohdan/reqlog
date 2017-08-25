@@ -10,7 +10,7 @@ services:
       - 5432:5432
     volumes:
       - /var/lib/postgresql
-  reqlog:  
+  web_app:  
     build:
         context: .
         dockerfile: docker
@@ -30,8 +30,18 @@ services:
           - database_connection_string=postgresql+psycopg2://pgreqlog:pgreqlog@postgres/pgreqlog
           - app_produce_sql_echo=false
     restart: always
-    ports:
-      - 9000:80
     tty: true
     depends_on:
-      - postgres
+      - postgres      
+    ports:
+      - 9001:8000      
+  haproxy:
+    build:
+        context: ./infrastructure/config/haproxy
+        dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - web_app
+    ports:
+      - 9000:80
+      - 8080:8080
