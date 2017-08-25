@@ -24,9 +24,6 @@ This project uses these core technologies and tools.
 * [webtests](https://pypi.python.org/pypi/WebTest) for functional testing;
 * [coverage](https://coverage.readthedocs.io/en/) for tests coverage calculation.
 
-### Docker
-
-**Warning.** Docker will be supported in next versions. Now only rudime
 
 ## Pre-install
 
@@ -52,8 +49,7 @@ Note: you can use `make help` to see all available commands and functions.
 
 This web-application can be deployed into AWS or bare-metal server.
 
-I preferr to use `nginx + uwsgi + supervisord` in `Docker`. In further versions will be added Docker support.
-
+I preferr to use `nginx + uwsgi + supervisord` in `Docker`. You can build Docker container for further deployment. More information can be found in `Docker` section of this document.
 
 ## Make commands
 
@@ -102,5 +98,38 @@ To check running instance (for example, initialized by `make run`) you can go to
 ```
 
 Also, you can log to UI by going to http://localhost:9000/version with login `demo@gmail.com` and password `demo`.
+
+
+## Docker
+
+`reqlog` can be build as Docker image for further deployment on server. 
+
+To build under Windows you just need execute:
+
+* `make docker_base` - will build base image based on Debian and required utilities and servers;
+* `make docker_image` - will build image with reqlog and SQLite database;
+
+
+If you want build using command line you should execute (in root folder):
+
+* `docker build -t reqlog_base -f docker-base .` to build base image;
+* `docker build -t reqlog_container --build-arg application=reqlog --build-arg DOCKER_BASE=docker-base -f docker .`  to build image with `reqlog` installed.
+
+**Warn:** please note that command lines contains dot ("`.`" symbol at end).
+
+To run built Docker containers you should run:
+
+`docker run --rm -d -p 80:9000 -v ./logs:/var/log/supervisor reqlog_container`
+
+This will start built container that will be accessible at port 9000. You can check that everything is OK just by visiting http://localhost:9000/version If everything is OK, you will get something like this:
+
+```json
+{
+    "app_name":"reqlog",
+    "version":"0.1.0.0"
+}
+```
+
+If you want log into system, you can go to http://localhost:9000 with login `demo@gmail.com` and password `demo`
 
 Hope you like it. Enjoy!

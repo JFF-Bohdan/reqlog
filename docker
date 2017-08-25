@@ -85,6 +85,7 @@ RUN dos2unix /etc/nginx/conf.d/nginx.conf
 # configuring nginx
 RUN sed -i -e 's|SOCKET_NAME|unix://'"$app_socket_name"'|g' /etc/nginx/conf.d/nginx.conf
 RUN sed -i -e 's/APP_NAME/'"$application"'/g' /etc/nginx/conf.d/nginx.conf
+RUN sed -i -e 's|APP_STATIC_FILES_DIR|'"$static_files_path"'|g' /etc/nginx/conf.d/nginx.conf
 
 #################
 #     uwsgi     #
@@ -160,7 +161,6 @@ ADD ${application} /opt/${application}
 WORKDIR /opt/${application}
 
 COPY requirements.txt .coveragerc .flake8 requirements-dev.txt ./
-
 
 #############################
 # initializing static files #
