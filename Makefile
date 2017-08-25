@@ -15,8 +15,6 @@ TMP_PATH = .\tmp
 CPDIR = xcopy
 STATIC_FILES_DIR = .\static
 CPDIR_KEYS = /e /i /h
-DOCKER_CONTAINER_APP_PORT=8000
-DOCKER_MACHINE_PORT=9000
 BASE_DOCKER_IMAGE_TAG=reqlog_base
 
 environ: clean requirements.txt requirements-dev.txt
@@ -24,7 +22,6 @@ environ: clean requirements.txt requirements-dev.txt
 	$(PIP) install -r requirements-dev.txt
 	$(MAKE) init_static
 	@echo "initialization complete"
-	@docker pull redis
 
 .PHONY: help
 help:
