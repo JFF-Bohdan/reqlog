@@ -48,8 +48,8 @@ help:
 	@echo "make init_static          # initialize static files"
 	@echo "make docker_base          # build docker base image"
 	@echo "make docker_image         # build complete docker image"
-	@echo "make run_docker_container # run built docker container"
-	@echo "make up_redis             # start Redis docker container locally"	
+	@echo "make run_docker_container # run built docker container (docker-compose)"
+	@echo "make up_redis             # start Redis docker container locally (standalone)"
 
 .PHONY: run
 run:
@@ -66,7 +66,7 @@ coverage:
 
 .PHONY: create_db_folder
 create_db_folder:
-	if not exist db mkdir db
+	@if not exist db mkdir db
 	
 .PHONY: drop_database	
 drop_database:
@@ -147,19 +147,18 @@ init_static:
 	$(CPDIR) $(TMP_PATH)\node_modules\admin-lte\dist $(STATIC_FILES_DIR)\dist $(CPDIR_KEYS)
 	$(CPDIR) $(TMP_PATH)\node_modules\admin-lte\plugins $(STATIC_FILES_DIR)\plugins $(CPDIR_KEYS)	
 	$(CPDIR) $(MODULE_NAME)\data\imgs $(STATIC_FILES_DIR)\imgs $(CPDIR_KEYS)	
-
 	
 .PHONY: docker_base
 docker_base:
-	docker build -t $(BASE_DOCKER_IMAGE_TAG) -f docker-base .
+	@docker build -t $(BASE_DOCKER_IMAGE_TAG) -f docker-base .
 	
 .PHONY: docker_image
 docker_image:
-	docker build -t $(MODULE_NAME)_container --build-arg application=$(MODULE_NAME) --build-arg DOCKER_BASE=$(BASE_DOCKER_IMAGE_TAG) -f docker .
+	@docker-compose -f docker-compose.yml build
 
 .PHONY: run_docker_container
 run_docker_container:
-	docker run --rm -d -p $(DOCKER_MACHINE_PORT):$(DOCKER_CONTAINER_APP_PORT) -v ./logs:/var/log/supervisor $(MODULE_NAME)_container
+	@docker-compose -f docker-compose.yml up
 
 .PHONY: up_redis
 up_redis:

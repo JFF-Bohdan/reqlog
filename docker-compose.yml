@@ -1,0 +1,23 @@
+version: "2"
+services:
+  postgres:
+    image: postgres:9.6
+    environment:
+      POSTGRES_PASSWORD: pgreqlog
+      POSTGRES_USER: pgreqlog
+      POSTGRES_DB: pgreqlog
+    ports:
+      - 5432:5432
+    volumes:
+      - /var/lib/postgresql
+  reqlog:  
+    build:
+        context: .
+        dockerfile: docker
+        args:
+          - application=reqlog
+          - DOCKER_BASE=reqlog_base
+    restart: always
+    ports:
+      - 9000:80
+    tty: true
