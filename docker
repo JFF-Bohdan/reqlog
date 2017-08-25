@@ -12,9 +12,6 @@ ENV app_socket_name=${app_socket_name}
 ARG web_app_name="Req Log (in Docker), own instance"
 ENV web_app_name=${web_app_name}
 
-ARG sqlite_db_path=/var/data/${application}/db
-ENV sqlite_db_path=${sqlite_db_path}
-
 ARG static_files_path=/var/data/${application}/static
 ENV static_files_path=${static_files_path}
 
@@ -36,7 +33,7 @@ ENV token_recreate_before_secs=${token_recreate_before_secs}
 ARG solution_name=ReqLog
 ENV solution_name=${solution_name}
 
-ARG instance_owner_name=instance_owner_name
+ARG instance_owner_name="ACME corp"
 ENV instance_owner_name=${instance_owner_name}
 
 ARG webappname="ReqLog (own instance)"
@@ -47,6 +44,12 @@ ENV app_host=${app_host}
 
 ENV dbmgt_script=${application}.dbmgt
 
+ARG sqlite_db_path=/var/data/${application}/db
+ARG database_connection_string="sqlite:////var/data/${application}/db/db.sqlite"
+ENV app_database_connection_string=${database_connection_string}
+
+ARG app_produce_sql_echo=false
+ENV app_produce_sql_echo=${app_produce_sql_echo}
 ################
 #    sqlite    #
 ################
@@ -129,8 +132,9 @@ RUN sed -i -e 's/APP_RELOADER_INTERVAL/1/g' /etc/${application}/app.conf
 RUN sed -i -e 's/APP_RELOADER/false/g' /etc/${application}/app.conf
 RUN sed -i -e 's|APP_WEB_APP_NAME|'"$webappname"'|g' /etc/${application}/app.conf
 
-# sqlitedb section
-RUN sed -i -e 's|APP_SQLITE_DB_PATH|'"$sqlite_db_path"'/db.sqlite|g' /etc/${application}/app.conf
+# db_connection section
+RUN sed -i -e 's|APP_DATABASE_CONNECTION_STRING|'"$app_database_connection_string"'|g' /etc/${application}/app.conf
+RUN sed -i -e 's|APP_PRODUCE_SQL_ECHO|'"$app_produce_sql_echo"'|g' /etc/${application}/app.conf
 
 # static section
 RUN sed -i -e 's|APP_STATIC_FILES_PATH|'"$static_files_path"'|g' /etc/${application}/app.conf
@@ -180,13 +184,13 @@ RUN rm -rf /tmp/${application}_static
 # initializing application #
 ############################
 # installing app requirements
+
+RUN apt-get -yqq install libpq-dev 
+#RUN apt install build-essential
+
 RUN pip3 install -r requirements.txt
 
 WORKDIR /opt
-
-RUN python3 -m ${dbmgt_script} --drop_database --config /etc/${application}/app.conf
-RUN python3 -m ${dbmgt_script} --create_database --config /etc/${application}/app.conf
-RUN python3 -m ${dbmgt_script} --init_database --config /etc/${application}/app.conf
 
 WORKDIR /opt/${application}
 
@@ -194,6 +198,19 @@ WORKDIR /opt/${application}
 #     ports     #
 #################
 # specifying port which should be exposed
-EXPOSE 80
+EXPOSE 8000
 
-CMD ["/usr/bin/supervisord"]
+#######################
+# initializing runner #
+#######################
+
+COPY ./infrastructure/config/run.sh /
+RUN dos2unix /run.sh
+
+RUN sed -i -e 's|{working_directory}|'"/opt"'|g' /run.sh
+RUN sed -i -e 's/{application}/'"$application"'/g' /run.sh
+RUN sed -i -e 's/{dbmgt_script}/'"$dbmgt_script"'/g' /run.sh
+
+RUN chmod +x /run.sh
+
+CMD ["/run.sh"]

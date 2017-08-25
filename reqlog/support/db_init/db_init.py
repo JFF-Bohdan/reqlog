@@ -25,29 +25,41 @@ def init_database(logger, session):
     logger.info("added DCDs count - {}".format(dcds_qty))
 
     session.flush()
-
     session.commit()
 
 
 def add_initial_users(session):
-    user = User()
 
-    user.password_hash, user.password_salt = create_hash(ADMIN_USER_PASSWORD)
-    user.user_name = ADMIN_USER_LOGIN
-    user.user_email = ADMIN_USER_EMAIL
-    user.user_login = ADMIN_USER_LOGIN
+    if not is_user_exists_by_login(session, ADMIN_USER_LOGIN):
+        user = User()
 
-    session.add(user)
+        user.password_hash, user.password_salt = create_hash(ADMIN_USER_PASSWORD)
+        user.user_name = ADMIN_USER_LOGIN
+        user.user_email = ADMIN_USER_EMAIL
+        user.user_login = ADMIN_USER_LOGIN
 
-    user = User()
+        session.add(user)
 
-    user.password_hash, user.password_salt = create_hash(DEMO_USER_PASSWORD)
-    user.user_name = DEMO_USER_NAME
-    user.user_email = DEMO_USER_EMAIL
-    user.user_login = DEMO_USER_LOGIN
-    user.user_uid = DEMO_USER_UID
+    if not is_user_exists_by_login(session, DEMO_USER_LOGIN):
+        user = User()
 
-    session.add(user)
+        user.password_hash, user.password_salt = create_hash(DEMO_USER_PASSWORD)
+        user.user_name = DEMO_USER_NAME
+        user.user_email = DEMO_USER_EMAIL
+        user.user_login = DEMO_USER_LOGIN
+        user.user_uid = DEMO_USER_UID
+
+        session.add(user)
+
+
+def is_user_exists_by_login(session, login):
+    user_id = session.query(
+        User.user_id
+    ).filter(
+        User.user_login == login
+    ).scalar()
+
+    return user_id is not None
 
 
 def add_demo_nodes_and_devices(session):
@@ -62,19 +74,39 @@ def add_demo_nodes_and_devices(session):
     dcns_qty = 0
     dcds_qty = 0
     for dcn_item in DEMO_CONFIGURATION:
-        node = DataCollectingNode()
+        node = session.query(
+            DataCollectingNode
+        ).filter(
+            DataCollectingNode.owner_id == user.user_id,
+            DataCollectingNode.dcn_name == dcn_item["dcn_name"]
+        ).scalar()
 
-        node.dcn_name = dcn_item["dcn_name"]
-        node.dcn_uid = str(ksuid.ksuid())
-        node.owner_id = user.user_id
-        node.description = dcn_item["dcn_description"]
+        if node is None:
+            node = DataCollectingNode()
 
-        session.add(node)
-        session.flush()
+            node.dcn_name = dcn_item["dcn_name"]
+            node.dcn_uid = str(ksuid.ksuid())
+            node.owner_id = user.user_id
+            node.description = dcn_item["dcn_description"]
 
-        dcns_qty += 1
+            session.add(node)
+            session.flush()
+
+            dcns_qty += 1
 
         for dcd_item in dcn_item["devices"]:
+            dcd = session.query(
+                DataCollectingDevice
+            ).filter(
+                DataCollectingDevice.dcn_id == node.dcn_id,
+                DataCollectingDevice.dcd_name == dcd_item["dcd_name"],
+                DataCollectingDevice.write_token == dcd_item["write_token"],
+                DataCollectingDevice.read_token == dcd_item["read_token"]
+            ).scalar()
+
+            if dcd is not None:
+                continue
+
             dcd = DataCollectingDevice()
 
             dcd.dcn_id = node.dcn_id
@@ -96,6 +128,15 @@ def add_demo_nodes_and_devices(session):
 
 def add_dictionaries_data(session):
     for (scope_code, scope_name) in DcAvailableScope.get_all_possible_scopes():
+        stub_id = session.query(
+            DcAvailableScope.scope_id
+        ).filter(
+            DcAvailableScope.scope_code == scope_code
+        ).scalar()
+
+        if stub_id is not None:
+            continue
+
         item = DcAvailableScope()
 
         item.scope_code = scope_code
@@ -121,6 +162,16 @@ def give_all_scopes_to_admin(session):
     ).all()
 
     for (scope_id, ) in data:
+        stub_id = session.query(
+            LinkUserToScope.row_id
+        ).filter(
+            LinkUserToScope.user_id == user_id,
+            LinkUserToScope.scope_id == scope_id
+        ).scalar()
+
+        if stub_id is not None:
+            continue
+
         link = LinkUserToScope()
 
         link.user_id = user_id

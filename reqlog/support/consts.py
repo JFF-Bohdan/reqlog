@@ -1,1 +1,1 @@
-SQLITE_IN_MEMORY_DB_PATH = ":memory:"
+SQLITE_IN_MEMORY_DB_PATH = "sqlite:///:memory:"

@@ -1,0 +1,47 @@
+version: "2"
+services:
+  postgres:
+    image: postgres:9.6
+    environment:
+      POSTGRES_PASSWORD: pgreqlog
+      POSTGRES_USER: pgreqlog
+      POSTGRES_DB: pgreqlog
+    ports:
+      - 5432:5432
+    volumes:
+      - /var/lib/postgresql
+  web_app:  
+    build:
+        context: .
+        dockerfile: docker
+        args:
+          - application=reqlog
+          - DOCKER_BASE=reqlog_base
+          - build=1
+          - web_app_name="Req Log (in Docker), own instance"
+          - server_secret=123
+          - cookie_sign_secret=456
+          - token_ttl_secs=1600
+          - token_recreate_before_secs=600
+          - solution_name=ReqLog
+          - instance_owner_name="Umbrella corporation"
+          - webappname="ReqLog (own instance)"
+          - app_host=localhost
+          - database_connection_string=postgresql+psycopg2://pgreqlog:pgreqlog@postgres/pgreqlog
+          - app_produce_sql_echo=false
+    restart: always
+    tty: true
+    depends_on:
+      - postgres      
+    ports:
+      - 9001:8000      
+  haproxy:
+    build:
+        context: ./infrastructure/config/haproxy
+        dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - web_app
+    ports:
+      - 9000:80
+      - 8080:8080

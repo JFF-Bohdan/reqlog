@@ -5,3 +5,4 @@ bottle-sqlalchemy==0.4.3
 ujson==1.35
 uwsgidecorators==1.1.0
 git+https://github.com/JFF-Bohdan/KSUID.git
+psycopg2==2.7.3
