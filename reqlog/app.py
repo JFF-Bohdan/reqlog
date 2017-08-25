@@ -23,20 +23,15 @@ application.install(JSONPlugin(json_dumps=lambda s: json_dumps(s, sort_keys=True
 
 
 def init_base_and_engine(logger, config):
-    from reqlog.support.consts import SQLITE_IN_MEMORY_DB_PATH
+    db_connection_string = config.get("db_connection", "connection_string")
+    produce_sql_echo = config.getboolean("db_connection", "produce_echo")
 
-    db_path = config.get("sqlitedb", "path")
-    logger.info("db_path = '{}'".format(db_path))
+    logger.info("db_connection_string = '{}'".format(db_connection_string))
+    logger.info("produce_sql_echo     = '{}'".format(produce_sql_echo))
 
-    if db_path != SQLITE_IN_MEMORY_DB_PATH:
-        db_path = os.path.abspath(db_path)
-        recreate_db = not os.path.exists(db_path)
-    else:
-        recreate_db = True
+    engine = sqlalchemy.create_engine(db_connection_string, echo=produce_sql_echo)
 
-    engine = sqlalchemy.create_engine("sqlite:///" + db_path, echo=False)
-
-    return engine, recreate_db
+    return engine
 
 
 class ImprovedSqlAlchemyPlugin(bottle_sqlalchemy.SQLAlchemyPlugin):
@@ -143,13 +138,13 @@ def setup_app(config=None, force_recreate_database=False, force_initialize_datab
 
     application.config = config
 
-    engine, recreate_db = init_base_and_engine(logger, config)
+    engine = init_base_and_engine(logger, config)
 
     db_plugin = ImprovedSqlAlchemyPlugin(
         engine,  # SQLAlchemy engine created with create_engine function.
         Base.metadata,  # SQLAlchemy metadata, required only if create=True.
         keyword="db",  # Keyword used to inject session database in a route (default "db").
-        create=recreate_db,  # If it is true, execute `metadata.create_all(engine)` when plugin is applied (default False).
+        create=False,  # If it is true, execute `metadata.create_all(engine)` when plugin is applied (default False).
         commit=False,  # If it is true, plugin commit changes after route is executed (default True).
         use_kwargs=False  # If it is true and keyword is not defined, plugin uses **kwargs argument to inject session database (default False).
     )

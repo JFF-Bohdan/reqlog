@@ -15,22 +15,8 @@ def test_returns_401_on_no_access_token_sent():
     assert resp.status_code == 401
 
 
-def test_returns_403_when_wrong_token_sent_in_request_parameters():
-    app = setup_application(force_recreate_database=False, force_initialize_database=False)
-
-    params = {
-        "foo": "bar",
-        "bizz": "bazz",
-        "boo": "poo",
-        "t": "bad"
-    }
-    resp = app.post("/collect", params=params, expect_errors=True)
-
-    assert resp.status_code == 403
-
-
 def test_returns_403_when_wrong_token_sent_in_request_header():
-    app = setup_application(force_recreate_database=False, force_initialize_database=False)
+    app = setup_application(force_recreate_database=True, force_initialize_database=False)
 
     params = {
         "foo": "bar",
@@ -42,6 +28,20 @@ def test_returns_403_when_wrong_token_sent_in_request_header():
         "access_token": "bad"
     }
     resp = app.post("/collect", params=params, headers=headers, expect_errors=True)
+
+    assert resp.status_code == 403
+
+
+def test_returns_403_when_wrong_token_sent_in_request_parameters():
+    app = setup_application(force_recreate_database=True, force_initialize_database=False)
+
+    params = {
+        "foo": "bar",
+        "bizz": "bazz",
+        "boo": "poo",
+        "t": "bad"
+    }
+    resp = app.post("/collect", params=params, expect_errors=True)
 
     assert resp.status_code == 403
 
@@ -87,7 +87,6 @@ def test_successfully_adds_values():
 
         assert item in response_params
 
-
 def test_successfully_adds_values_again():
     app = setup_application(force_recreate_database=True, force_initialize_database=True)
 
@@ -111,7 +110,7 @@ def test_successfully_adds_values_again():
 
 
 def test_successfully_adds_values_with_access_token_in_header():
-    app = setup_application(force_recreate_database=False, force_initialize_database=False)
+    app = setup_application()
 
     headers = {
         "access_token": DEMO_DEVICE_WRITE_TOKEN

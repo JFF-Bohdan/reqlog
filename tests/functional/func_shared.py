@@ -15,8 +15,9 @@ def setup_test_config():
     config.set("main", "reloader", "true")
     config.set("main", "reloader_interval", "3")
 
-    config.add_section("sqlitedb")
-    config.set("sqlitedb", "path", SQLITE_IN_MEMORY_DB_PATH)
+    config.add_section("db_connection")
+    config.set("db_connection", "connection_string", SQLITE_IN_MEMORY_DB_PATH)
+    config.set("db_connection", "produce_echo", "false")
 
     config.add_section("static")
     config.set("static", "root", "./static")

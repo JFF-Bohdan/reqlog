@@ -12,8 +12,6 @@ ENV app_socket_name=${app_socket_name}
 ARG web_app_name="Req Log (in Docker), own instance"
 ENV web_app_name=${web_app_name}
 
-ARG sqlite_db_path=/var/data/${application}/db
-ENV sqlite_db_path=${sqlite_db_path}
 
 ARG static_files_path=/var/data/${application}/static
 ENV static_files_path=${static_files_path}
@@ -47,6 +45,11 @@ ENV app_host=${app_host}
 
 ENV dbmgt_script=${application}.dbmgt
 
+ARG sqlite_db_path=/var/data/${application}/db
+ENV app_database_connection_string="sqlite:////var/data/${application}/db/db.sqlite"
+
+ARG app_produce_sql_echo=false
+ENV app_produce_sql_echo=${app_produce_sql_echo}
 ################
 #    sqlite    #
 ################
@@ -129,8 +132,9 @@ RUN sed -i -e 's/APP_RELOADER_INTERVAL/1/g' /etc/${application}/app.conf
 RUN sed -i -e 's/APP_RELOADER/false/g' /etc/${application}/app.conf
 RUN sed -i -e 's|APP_WEB_APP_NAME|'"$webappname"'|g' /etc/${application}/app.conf
 
-# sqlitedb section
-RUN sed -i -e 's|APP_SQLITE_DB_PATH|'"$sqlite_db_path"'/db.sqlite|g' /etc/${application}/app.conf
+# db_connection section
+RUN sed -i -e 's|APP_DATABASE_CONNECTION_STRING|'"$app_database_connection_string"'|g' /etc/${application}/app.conf
+RUN sed -i -e 's|APP_PRODUCE_SQL_ECHO|'"$app_produce_sql_echo"'|g' /etc/${application}/app.conf
 
 # static section
 RUN sed -i -e 's|APP_STATIC_FILES_PATH|'"$static_files_path"'|g' /etc/${application}/app.conf

@@ -4,7 +4,7 @@ from tests.functional.func_shared import setup_application
 
 
 def test_returns_401_on_no_access_token_sent():
-    app = setup_application(force_recreate_database=False, force_initialize_database=False)
+    app = setup_application(force_recreate_database=True, force_initialize_database=False)
 
     resp = app.get("/view_all", expect_errors=True)
 
@@ -12,7 +12,7 @@ def test_returns_401_on_no_access_token_sent():
 
 
 def test_returns_403_when_wrong_token_sent_in_request_parameters():
-    app = setup_application(force_recreate_database=False, force_initialize_database=False)
+    app = setup_application(force_recreate_database=True, force_initialize_database=False)
 
     params = {
         "t": "bad"
@@ -23,7 +23,7 @@ def test_returns_403_when_wrong_token_sent_in_request_parameters():
 
 
 def test_returns_403_when_wrong_token_sent_in_request_header():
-    app = setup_application(force_recreate_database=False, force_initialize_database=False)
+    app = setup_application(force_recreate_database=True, force_initialize_database=False)
 
     headers = {
         "access_token": "bad"
@@ -34,7 +34,7 @@ def test_returns_403_when_wrong_token_sent_in_request_header():
 
 
 def test_adds_and_returns_valid_events():
-    app = setup_application(force_recreate_database=False, force_initialize_database=False)
+    app = setup_application(force_recreate_database=True, force_initialize_database=True)
 
     headers = {
         "access_token": DEMO_DEVICE_WRITE_TOKEN
