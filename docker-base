@@ -20,6 +20,9 @@ RUN apt-get -yqq update && apt-get -yqq install -y --no-install-recommends apt-u
 # updating system
 RUN apt-get -yqq update
 
+# upgrading system
+RUN apt-get -yqq upgrade
+
 ###################
 #    utilities    #
 ###################

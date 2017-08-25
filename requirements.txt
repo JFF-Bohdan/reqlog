@@ -3,4 +3,5 @@ python-dateutil==2.6.0
 PyJWT==1.5.0
 bottle-sqlalchemy==0.4.3
 ujson==1.35
+uwsgidecorators==1.1.0
 git+https://github.com/JFF-Bohdan/KSUID.git

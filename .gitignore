@@ -105,3 +105,4 @@ bp/
 db/
 static/
 tmp/
+.idea/

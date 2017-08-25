@@ -134,6 +134,10 @@ def setup_app(config=None, force_recreate_database=False, force_initialize_datab
 
             return
 
+    for plugin in application.plugins:
+        if ("keyword" in plugin.__dict__) and (plugin.keyword == "db"):
+            return
+
     if config is None:
         config = get_config()
 
@@ -196,7 +200,6 @@ def setup_app(config=None, force_recreate_database=False, force_initialize_datab
 from reqlog.dbschema import *  # noqa
 from reqlog.api import *  # noqa
 from reqlog.pages import *  # noqa
-
 
 try:
     import uwsgidecorators

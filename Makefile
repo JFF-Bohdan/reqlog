@@ -15,7 +15,7 @@ TMP_PATH = .\tmp
 CPDIR = xcopy
 STATIC_FILES_DIR = .\static
 CPDIR_KEYS = /e /i /h
-DOCKER_CONTAINER_APP_PORT=9000
+DOCKER_CONTAINER_APP_PORT=80
 DOCKER_MACHINE_PORT=9000
 BASE_DOCKER_IMAGE_TAG=reqlog_base
 
@@ -28,28 +28,28 @@ environ: clean requirements.txt requirements-dev.txt
 
 .PHONY: help
 help:
-	@echo "make                    # create virtual env and setup dependencies"
-	@echo "make tests              # run tests"
-	@echo "make coverage           # run tests with coverage report"
-	@echo "make run                # run server at localhost"
-	@echo "make lint               # check linting"
-	@echo "make flake8             # alias for `make lint`"
-	@echo "make clean              # remove more or less everything created by make"
-	@echo "make redcw              # remove exited Docker containers (for Windows)"
-	@echo "make idea_clean         # clean everything and prepare project to export"
-	@echo "make export             # clean ABSOLUTELLY everything except code (even .git) and reinit db"
-	@echo "make drop_database      # remove more or less everything created by make"
-	@echo "make create_database    # create all tables in database"
-	@echo "make init_database      # initialize database with initial data"
-	@echo "make reinit_database    # drop tables, create new and init with initial data"
-	@echo "make gen_test_requests  # generate test requests for Demo user"
-	@echo "make gen_ksuid          # generate ksuid and write to console"
-	@echo "make gen_ksuid62        # generate ksuid, encode as Base62 and write to console"
-	@echo "make init_static        # initialize static files"
-	@echo "make docker_base        # build docker base image"
-	@echo "make docker_image       # build complete docker image"
-	@echo "make run_docker_image   # run built docker container"
-	@echo "make up_redis           # start Redis docker container locally"	
+	@echo "make                      # create virtual env and setup dependencies"
+	@echo "make tests                # run tests"
+	@echo "make coverage             # run tests with coverage report"
+	@echo "make run                  # run server at localhost"
+	@echo "make lint                 # check linting"
+	@echo "make flake8               # alias for `make lint`"
+	@echo "make clean                # remove more or less everything created by make"
+	@echo "make redcw                # remove exited Docker containers (for Windows)"
+	@echo "make idea_clean           # clean everything and prepare project to export"
+	@echo "make export               # clean ABSOLUTELLY everything except code (even .git) and reinit db"
+	@echo "make drop_database        # remove more or less everything created by make"
+	@echo "make create_database      # create all tables in database"
+	@echo "make init_database        # initialize database with initial data"
+	@echo "make reinit_database      # drop tables, create new and init with initial data"
+	@echo "make gen_test_requests    # generate test requests for Demo user"
+	@echo "make gen_ksuid            # generate ksuid and write to console"
+	@echo "make gen_ksuid62          # generate ksuid, encode as Base62 and write to console"
+	@echo "make init_static          # initialize static files"
+	@echo "make docker_base          # build docker base image"
+	@echo "make docker_image         # build complete docker image"
+	@echo "make run_docker_container # run built docker container"
+	@echo "make up_redis             # start Redis docker container locally"	
 
 .PHONY: run
 run:
@@ -157,9 +157,9 @@ docker_base:
 docker_image:
 	docker build -t $(MODULE_NAME)_container --build-arg application=$(MODULE_NAME) --build-arg DOCKER_BASE=$(BASE_DOCKER_IMAGE_TAG) -f docker .
 
-.PHONY: run_docker_image
-run_docker_image:
-	docker run --rm -p $(DOCKER_CONTAINER_APP_PORT):$(DOCKER_MACHINE_PORT) -v ./logs:/var/log/supervisor $(MODULE_NAME)_container
+.PHONY: run_docker_container
+run_docker_container:
+	docker run --rm -d -p $(DOCKER_MACHINE_PORT):$(DOCKER_CONTAINER_APP_PORT) -v ./logs:/var/log/supervisor $(MODULE_NAME)_container
 
 .PHONY: up_redis
 up_redis:
