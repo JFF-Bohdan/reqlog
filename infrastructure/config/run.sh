@@ -4,15 +4,15 @@ set -o errexit
 
 # wait for postgres
 sleep 10
-cd /opt
+cd {working_directory}
 
-if [ ! -f /reqdbcreated ]; then
+if [ ! -f /{application}_db_created ]; then
   echo "Creating all tables"
-  python3 -m reqlog.dbmgt --create_database --config /etc/reqlog/app.conf
+  python3 -m {dbmgt_script} --create_database --config /etc/{application}/app.conf
 
   echo "Initializing database with initial data"
-  python3 -m reqlog.dbmgt --init_database --config /etc/reqlog/app.conf  
-  touch /reqdbcreated
+  python3 -m {dbmgt_script} --init_database --config /etc/{application}/app.conf  
+  touch /{application}_db_created
 fi
 
 echo "Starting application"

@@ -206,6 +206,11 @@ EXPOSE 80
 
 COPY ./infrastructure/config/run.sh /
 RUN dos2unix /run.sh
+
+RUN sed -i -e 's|{working_directory}|'"/opt"'|g' /run.sh
+RUN sed -i -e 's/{application}/'"$application"'/g' /run.sh
+RUN sed -i -e 's/{dbmgt_script}/'"$dbmgt_script"'/g' /run.sh
+
 RUN chmod +x /run.sh
 
 CMD ["/run.sh"]
